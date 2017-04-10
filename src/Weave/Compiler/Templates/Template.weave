@@ -11,7 +11,7 @@
     var modelName = settings["model"].FirstOrDefault() ?? "dynamic";
     var @namespace = settings["namespace"].First();
     var @static = bool.Parse(settings["static"].Select(v => ((SourceSpan)v).Value).FirstOrDefault() ?? "true");
-    var assemblyName = Assembly.GetExecutingAssembly().GetName();
+    var assemblyName = typeof(WeaveCompiler).GetTypeInfo().Assembly.GetName();
 
     this.indentationBase = "__originalIndentation";
 }}
