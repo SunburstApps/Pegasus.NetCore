@@ -1,15 +1,10 @@
 ﻿<Project>
-  <PropertyGroup>
-    <CompileDependsOn>$(CompileDependsOn);CompileWeaveTemplates</CompileDependsOn>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);CompileWeaveTemplates</CoreCompileDependsOn>
-    <CoreBuildDependsOn>$(CoreBuildDependsOn);CompileWeaveTemplates</CoreBuildDependsOn>
-  </PropertyGroup>
   <ItemGroup>
     <AvailableItemName Include="WeaveTemplate" />
   </ItemGroup>
-  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/Weave.dll" TaskName="CompileWeaveTemplate" />
+  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Weave.dll" TaskName="CompileWeaveTemplate" />
 
-  <Target Name="CompileWeaveTemplates" DependsOnTargets="_CompileWeaveTemplates" Condition=" '@(WeaveTemplate)' != '' ">
+  <Target Name="CompileWeaveTemplates" DependsOnTargets="_CompileWeaveTemplates" Condition=" '@(WeaveTemplate)' != '' " AfterTargets="BeforeBuild">
     <ItemGroup>
       <Compile Include="%(WeaveTemplate.OutputPath)" />
     </ItemGroup>
@@ -26,7 +21,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="_CompileWeaveAssembly" Condition="!Exists('$(MSBuildThisFileDirectory)bin/$(Configuration)/Weave.dll')">
+  <Target Name="_CompileWeaveAssembly" Condition="!Exists('$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Weave.dll')">
     <MSBuild Projects="$(MSBuildThisFileDirectory)Weave.csproj" Targets="Restore; Build" />
   </Target>
 
