@@ -1,0 +1,6 @@
+﻿@model CodeElement
+
+{{ var temp = this.CreateVariable("temp"); }}
+var {{= temp }} = indentation;
+{{@RenderCode model.Expression}}
+indentation = {{= temp }};

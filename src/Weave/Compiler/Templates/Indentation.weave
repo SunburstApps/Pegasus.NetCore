@@ -1,0 +1,10 @@
+﻿@methodname UpdateIndentation
+@model Element
+
+{{
+    Tuple<Element, string> indent;
+    this.indentation.TryGetValue(model, out indent);
+}}
+{{if indent != null}}
+    indentation = {{= this.indentationBase }}{{if indent.Item2.Length > 0}} + {{: indent.Item2 }}{{/if}};
+{{/if}}

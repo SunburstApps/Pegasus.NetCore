@@ -1,0 +1,3 @@
+﻿@model NewLineElement
+
+writer.WriteLine();

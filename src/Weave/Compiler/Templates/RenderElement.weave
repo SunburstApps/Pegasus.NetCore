@@ -1,0 +1,7 @@
+﻿@model RenderElement
+
+{{ var newModel = this.CreateVariable("model"); }}
+var {{= newModel }} =
+    {{@RenderCode model.Expression}}
+    ;
+{{= model.Method.Value }}({{= newModel }}, writer, indentation);

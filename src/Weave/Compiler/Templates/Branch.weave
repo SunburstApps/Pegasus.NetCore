@@ -1,0 +1,10 @@
+﻿@model Branch
+
+{{if model.Expression != null}}
+    if (
+        {{@RenderCode model.Expression}}
+        )
+{{/if}}
+{
+    {{@WalkElements model.Body}}
+}

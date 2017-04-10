@@ -1,0 +1,7 @@
+﻿@model IfElement
+
+{{each branch in model.Branches}}
+    {{@WalkBranch branch}}
+{{delimit}}
+    else
+{{/each}}

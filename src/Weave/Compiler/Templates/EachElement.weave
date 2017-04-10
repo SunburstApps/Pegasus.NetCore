@@ -1,0 +1,36 @@
+﻿@model EachElement
+
+{{
+    var useFlag = model.NoneBody != null || model.DelimitBody != null;
+    var flag = useFlag ? this.CreateVariable("flag") : null;
+}}
+{{if useFlag}}
+    bool {{= flag }} = false;
+
+{{/if}}
+foreach (var
+    {{@RenderCode model.EachBody.Expression}}
+    )
+{
+    {{if model.DelimitBody != null}}
+        if ({{= flag}})
+        {
+            {{@WalkElements model.DelimitBody.Body}}
+        }
+        else
+        {
+            {{= flag }} = true;
+        }
+    {{elif useFlag}}
+        {{= flag }} = true;
+    {{/if}}
+    {{@WalkElements model.EachBody.Body}}
+}
+
+{{if model.NoneBody != null}}
+    if (!{{= flag }})
+    {
+        {{@WalkElements model.NoneBody.Body}}
+    }
+
+{{/if}}

@@ -1,0 +1,11 @@
+﻿@model EchoTag
+
+{{if model.Encoded}}
+    writer.Write(__encode(
+        {{@RenderCode model.Expression}}
+        ));
+{{else}}
+    writer.Write(
+        {{@RenderCode model.Expression}}
+        );
+{{/if}}

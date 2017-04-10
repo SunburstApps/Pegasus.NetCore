@@ -1,0 +1,205 @@
+﻿@namespace Weave.Parser
+@classname WeaveParser
+@using System.Globalization
+@using System.Linq
+@using Weave.Expressions
+@members
+{
+    private class RenderTag
+    {
+        public SourceSpan Method { get; set; }
+        public SourceSpan Expression { get; set; }
+    }
+}
+
+template <Template>
+    = settings:setting* EOL? elements:lines (EOF / unexpected:. #ERROR{ "WEAVE0007:" + string.Format(CultureInfo.CurrentCulture, Resources.WEAVE0007_UNEXPECTED_CHARACTER, unexpected) }) {
+        new Template(settingsStart, settings, elementsStart, elements, elementsEnd)
+    }
+
+setting <KeyValuePair<SourceSpan, SourceSpan>>
+    = "@" key:identifier WS+ value:("" (!EOL .)+) (EOL / EOF) {
+        new KeyValuePair<SourceSpan, SourceSpan>(
+            key,
+            new SourceSpan(value, valueStart, valueEnd))
+    }
+
+lines <IList<Element>>
+    = lines:line* { lines.SelectMany(l => l).ToList() }
+
+line <IList<Element>>
+    = t:tag { new[] { t } }
+    / textLine
+
+textLine <IList<Element>>
+    = !EOF indentation:(!EOL WS*)? contents:inlineElement* end:(EOL / EOF) {{
+        var results = new List<Element>();
+        results.AddRange(indentation.Select(i => new IndentationElement(i)));
+        results.AddRange(contents);
+
+        if (end != string.Empty)
+        {
+            results.Add(new NewLineElement());
+        }
+
+        return results;
+    }}
+
+inlineContents <IList<Element>>
+    = head:inlineElement* tail:(<IEnumerable<Element>> EOL l:lines restIndent:(!(EOL / EOF) WS*)? rest:inlineElement* { new[] { new NewLineElement() }.Concat(l).Concat(restIndent.Select(i => new IndentationElement(i))).Concat(rest) })? { head.Concat(tail.SelectMany(e => e)).ToList() }
+
+inlineElement <Element>
+    = t:text { new TextElement(t) }
+    / echoTag
+    / inlineCodeElement
+    / inlineIfElement
+    / inlineEachElement
+    / inlineWrapIfElement
+    / inlineRenderElement
+
+tag <Element>
+    = codeElement
+    / ifElement
+    / eachElement
+    / wrapIfElement
+    / renderElement
+
+codeElement <CodeElement>
+    = indentation:("" WS*) expr:codeTag WS* (EOL / EOF) { new CodeElement(expr, indentation) }
+
+inlineCodeElement <CodeElement>
+    = expr:codeTag  { new CodeElement(expr) }
+
+ifElement <IfElement>
+    = if:ifBody elseIfs:elifBody* else:elseBody? endIndentation:("" WS*) endIfTag WS* (EOL / EOF) {
+        new IfElement(new[] { @if }.Concat(elseIfs).Concat(@else), endIndentation)
+    }
+
+ifBody <Branch>
+    = indentation:("" WS*) expr:ifTag   WS* EOL body:lines { new Branch(expr, body, indentation) }
+
+elifBody <Branch>
+    = indentation:("" WS*) expr:elifTag WS* EOL body:lines { new Branch(expr, body, indentation) }
+
+elseBody <Branch>
+    = indentation:("" WS*) elseTag      WS* EOL body:lines { new Branch(null, body, indentation) }
+
+inlineIfElement <IfElement>
+    = if:inlineIfBody elseIfs:inlineElifBody* else:inlineElseBody? endIfTag {
+        new IfElement(new[] { @if }.Concat(elseIfs).Concat(@else))
+    }
+
+inlineIfBody <Branch>
+    = expr:ifTag   body:inlineContents { new Branch(expr, body) }
+
+inlineElifBody <Branch>
+    = expr:elifTag body:inlineContents { new Branch(expr, body) }
+
+inlineElseBody <Branch>
+    = elseTag      body:inlineContents { new Branch(null, body) }
+
+eachElement <EachElement>
+    = each:eachBody delimit:delimitBody? none:noneBody? endIndentation:("" WS*) endEachTag WS* (EOL / EOF) {
+        new EachElement(@each, delimit.SingleOrDefault(), none.SingleOrDefault(), endIndentation)
+    }
+
+eachBody <EachBody>
+    = indentation:("" WS*) expr:eachTag WS* EOL body:lines { new EachBody(expr, (IList<Element>)body, indentation) }
+
+delimitBody <DelimitBody>
+    = indentation:("" WS*) delimitTag WS* EOL body:lines { new DelimitBody(body, indentation) }
+
+noneBody <NoneBody>
+    = indentation:("" WS*) noneTag WS* EOL body:lines { new NoneBody(body, indentation) }
+
+inlineEachElement <EachElement>
+    = each:inlineEachBody delimit:inlineDelimitBody? none:inlineNoneBody? endEachTag {
+        new EachElement(@each, delimit.SingleOrDefault(), none.SingleOrDefault())
+    }
+
+inlineEachBody <EachBody>
+    = expr:eachTag body:inlineContents { new EachBody(expr, body) }
+
+inlineDelimitBody <DelimitBody>
+    = delimitTag body:inlineContents { new DelimitBody(body) }
+
+inlineNoneBody <NoneBody>
+    = noneTag body:inlineContents { new NoneBody(body) }
+
+wrapIfElement <WrapIfElement>
+    = indentation:("" WS*) expr:wrapIfTag WS* EOL before:lines body:bodyElement after:lines endIndentation:("" WS*) endWrapIfTag WS* (EOL / EOF) {
+        new WrapIfElement(indentation, expr, before, body, after, endIndentation)
+    }
+
+bodyElement <BodyElement>
+    = indentation:("" WS*) bodyTag WS* EOL body:lines endIndentation:("" WS*) endBodyTag WS* (EOL / EOF) {
+        new BodyElement(indentation, body, endIndentation)
+    }
+
+inlineWrapIfElement <WrapIfElement>
+    = expr:wrapIfTag before:inlineContents body:inlineBodyElement after:inlineContents endWrapIfTag {
+        new WrapIfElement(null, expr, before, body, after, null)
+    }
+
+inlineBodyElement <BodyElement> 
+    = bodyTag body:inlineContents endBodyTag {
+        new BodyElement(null, body, null)
+    }
+
+renderElement <RenderElement>
+    = indentation:("" WS*) tag:renderTag WS* (EOL / EOF) { new RenderElement(tag.Method, tag.Expression, indentation) }
+
+inlineRenderElement <RenderElement>
+    = tag:renderTag { new RenderElement(tag.Method, tag.Expression) }
+
+codeTag <SourceSpan>   = "{{" &(WS / EOL) expr:expression "}}"                  { expr }
+ifTag   <SourceSpan>   = "{{if" &(WS / EOL) expr:expression "}}"                { expr }
+elifTag <SourceSpan>   = "{{elif" &(WS / EOL) expr:expression "}}"              { expr }
+elseTag                = "{{else}}"
+endIfTag               = "{{/if}}"
+eachTag <SourceSpan>   = "{{each" &(WS / EOL) expr:expression "}}"              { expr }
+delimitTag             = "{{delimit}}"
+noneTag                = "{{none}}"
+endEachTag             = "{{/each}}"
+wrapIfTag <SourceSpan> = "{{wrapif" &(WS / EOL) expr:expression "}}"            { expr }
+bodyTag                = "{{body}}"
+endBodyTag             = "{{/body}}"
+endWrapIfTag           = "{{/wrapif}}"
+renderTag <RenderTag>  = "{{@" name:identifier &(WS / EOL) expr:expression "}}" { new RenderTag { Method = name, Expression = expr } }
+echoTag <EchoTag>      = "{{:" expr:expression "}}"                             { new EchoTag(expr, encoded: true)  }
+                       / "{{=" expr:expression "}}"                             { new EchoTag(expr, encoded: false) }
+
+text -memoize
+    = "" (!EOL !"{{" .)+
+
+expression <SourceSpan>
+    = text:("" (!"}}" .)+) { new SourceSpan(text, textStart, textEnd) }
+
+identifier <SourceSpan>
+    = i:(!digit (letter / digit / "_" / "$")+) { new SourceSpan(i, iStart, iEnd) }
+
+digit
+  = [0-9]
+
+letter
+  = lowerCaseLetter
+  / upperCaseLetter
+
+lowerCaseLetter
+  = [a-z]
+
+upperCaseLetter
+  = [A-Z]
+
+WS
+    = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
+
+EOL
+    = "\n"
+    / "\r\n"
+    / "\r"
+    / "\u2028"
+    / "\u2029"
+
+EOF
+  = !.
