@@ -13,8 +13,8 @@ namespace Pegasus.Compiler
     /// </summary>
     public static class PegCompiler
     {
-        private static readonly IList<Type> PassTypes = Assembly.GetExecutingAssembly().GetTypes()
-            .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(CompilePass)))
+        private static readonly IList<Type> PassTypes = typeof(PegCompiler).GetTypeInfo().Assembly.GetTypes()
+            .Where(t => !t.GetTypeInfo().IsAbstract && t.GetTypeInfo().IsSubclassOf(typeof(CompilePass)))
             .ToList()
             .AsReadOnly();
 
