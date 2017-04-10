@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Pegasus.Common/Pegasus.Common.csproj" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.*" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.*" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.0.0" />
+
+    <WeaveTemplate Include="Compiler/CodeGenerator/*.weave" />
+
+    <EmbeddedResource Update="Resources.resx" Namespace="Pegasus.Properties" />
+  </ItemGroup>
+
+  <Import Project="../dir.targets" />
+  <Import Project="../Weave/Weave.targets" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), external/AutoResGen/AutoResGen.targets))/external/AutoResGen/AutoResGen.targets" />
+</Project>
