@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.*" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.0.0" />
 
-    <WeaveTemplate Include="Compiler/CodeGenerator/*.weave" />
+    <WeaveTemplate Include="Compiler/CodeGenerator/*.weave" Exclude="Compiler/CodeGenerator/_config.weave" />
 
     <EmbeddedResource Update="Resources.resx" Namespace="Pegasus.Properties" />
   </ItemGroup>
