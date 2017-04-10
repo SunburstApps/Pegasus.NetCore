@@ -1,0 +1,37 @@
+﻿<Project>
+  <PropertyGroup>
+    <CompileDependsOn>$(CompileDependsOn);CompileWeaveTemplates</CompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);CompileWeaveTemplates</CoreCompileDependsOn>
+    <CoreBuildDependsOn>$(CoreBuildDependsOn);CompileWeaveTemplates</CoreBuildDependsOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvailableItemName Include="WeaveTemplate" />
+  </ItemGroup>
+  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/Weave.dll" TaskName="CompileWeaveTemplate" />
+
+  <Target Name="CompileWeaveTemplates" DependsOnTargets="_CompileWeaveTemplates" Condition=" '@(WeaveTemplate)' != '' ">
+    <ItemGroup>
+      <Compile Include="%(WeaveTemplate.OutputPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_UpdateWeaveTemplatesMetadata">
+    <ItemGroup>
+      <WeaveTemplate Condition=" '%(WeaveTemplate.Link)' != '' ">
+        <OutputPath>$(IntermediateOutputPath)%(WeaveTemplate.Link).cs</OutputPath>
+      </WeaveTemplate>
+      <WeaveTemplate Condition=" '%(WeaveTemplate.Link)' == '' ">
+        <OutputPath>$(IntermediateOutputPath)%(WeaveTemplate.Identity).cs</OutputPath>
+      </WeaveTemplate>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CompileWeaveAssembly" Condition="!Exists('$(MSBuildThisFileDirectory)bin/$(Configuration)/Weave.dll')">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)Weave.csproj" Targets="Restore; Build" />
+  </Target>
+
+  <Target Name="_CompileWeaveTemplates" DependsOnTargets="_UpdateWeaveTemplatesMetadata; _CompileWeaveAssembly" Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile);@(WeaveTemplate)" Outputs="@(WeaveTemplate -> '%(OutputPath)')">
+    <CompileWeaveTemplate InputFile="%(WeaveTemplate.FullPath)" OutputFile="%(WeaveTemplate.OutputPath)" />
+    <Message Text="%(WeaveTemplate.Identity) -> %(WeaveTemplate.OutputPath)" />
+  </Target>
+</Project>
