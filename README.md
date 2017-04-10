@@ -3,7 +3,8 @@ Pegasus
 
 Pegasus is a PEG-style parser generator for C# that integrates with MSBuild and Visual Studio.
 This repository contains a fork of [the original Pegasus project](https://github.com/otac0n/Pegasus),
-modified to target .NET Standard 1.7.
+modified to target .NET Standard 1.7. It also contains a copy of [Weave](https://github.com/otac0n/Weave),
+similarly modified, as that project is required by Pegasus.
 
 [![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/otac0n/Pegasus/blob/master/license.md)
 [![Get it on NuGet](https://img.shields.io/nuget/v/Pegasus.svg?style=flat-square)](http://nuget.org/packages/Pegasus)
