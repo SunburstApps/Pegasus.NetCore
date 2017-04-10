@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.7</TargetFrameworks>
+    <DefineConstants>PORTABLE</DefineConstants>
+  </PropertyGroup>
+
+  <Import Project="../dir.targets" />
+</Project>
