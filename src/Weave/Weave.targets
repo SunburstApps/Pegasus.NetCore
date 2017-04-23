@@ -2,7 +2,13 @@
   <ItemGroup>
     <AvailableItemName Include="WeaveTemplate" />
   </ItemGroup>
-  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Weave.dll" TaskName="CompileWeaveTemplate" />
+
+  <PropertyGroup>
+    <_WeaveTasksPath Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Weave.dll</_WeaveTasksPath>
+    <_WeaveTasksPath Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)bin/$(Configuration)/net46/Weave.exe</_WeaveTasksPath>
+  </PropertyGroup>
+
+  <UsingTask AssemblyFile="$(_WeaveTasksPath)" TaskName="CompileWeaveTemplate" />
 
   <Target Name="CompileWeaveTemplates" DependsOnTargets="_CompileWeaveTemplates" Condition=" '@(WeaveTemplate)' != '' " AfterTargets="BeforeBuild">
     <ItemGroup>

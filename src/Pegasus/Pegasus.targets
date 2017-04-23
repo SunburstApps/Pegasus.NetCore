@@ -3,7 +3,12 @@
   <ItemGroup>
     <AvailableItemName Include="PegGrammar" />
   </ItemGroup>
-  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Pegasus.dll" TaskName="CompilePegGrammar" />
+
+  <PropertyGroup>
+    <_PegasusTasksPath Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)bin/$(Configuration)/netcoreapp1.1/Pegasus.dll</_PegasusTasksPath>
+    <_PegasusTasksPath Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)bin/$(Configuration)/net46/Pegasus.exe</_PegasusTasksPath>
+  </PropertyGroup>
+  <UsingTask AssemblyFile="$(_PegasusTasksPath)" TaskName="CompilePegGrammar" />
 
   <Target Name="CompilePegGrammars" DependsOnTargets="_CompilePegGrammars" Condition=" '@(PegGrammar)' != '' " AfterTargets="BeforeBuild">
     <ItemGroup>

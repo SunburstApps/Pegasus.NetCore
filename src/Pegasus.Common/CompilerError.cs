@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if TARGET_CORECLR
 using System.Globalization;
 
 namespace System.CodeDom.Compiler
@@ -33,3 +34,4 @@ namespace System.CodeDom.Compiler
         private string WarningString => IsWarning ? "warning" : "error";
     }
 }
+#endif
